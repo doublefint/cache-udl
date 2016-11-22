@@ -53,7 +53,7 @@ ClassMethod export(generated = 0, system = 0, percent = 0)
 	s sql = "Select fullName as Name From %DeepSee_UserLibrary.FolderItem"
     s rs = ##class(%SQL.Statement).%ExecDirect( .stm, sql )
     while rs.%Next() {
-		s code = rs.Name, filename = ..filename( code )_".dfi"
+		s code = rs.Name, filename = ..filename( code_".dfi" )
 		$$$log
 		d $$$export( code, filename )
 		
@@ -109,10 +109,9 @@ ClassMethod import(qspec = "-d", ByRef err = "", recurse = 1, ByRef loaded = "",
 /// Translate ( codename ) into ( filename )
 ClassMethod filename(code)
 {
-	s path = ##class(%File).NormalizeFilename(code, ..workdir())
-	s dir = ##class(%File).GetDirectory( path )
-	d:'##class(%File).DirectoryExists( dir ) ##class(%File).CreateDirectoryChain( dir )
-	Q path
+	s wd = ..workdir() 
+	d:'##class(%File).DirectoryExists( wd ) ##class(%File).CreateDirectoryChain( wd )
+	Q ##class(%File).NormalizeFilename( code, wd )
 }
 
 /// get or set working directory for export/import source
