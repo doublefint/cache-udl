@@ -3,6 +3,7 @@
 /// w ##class(sc.all).workdir( "c:\your\work\dir\")
 /// d ##class(sc.all).export()
 /// d ##class(sc.all).import()
+/// 
 Class sc.all [ Abstract ]
 {
 
@@ -63,7 +64,7 @@ ClassMethod export(generated = 0, system = 0, percent = 0)
 }
 
 /// import all from workdir
-ClassMethod import(qspec = "-d", ByRef err = "", recurse = 1, ByRef loaded = "", verbose = 1) As %Status
+ClassMethod import(qspec = "cku-d", ByRef err = "", recurse = 1, ByRef loaded = "", verbose = 1) As %Status
 {
 	#define push(%dir) s dirs( $i( dirs ) ) = %dir
 	#define next(%i,%dir) s %i=$o( dirs( "" ), 1, %dir )  k:%i'="" dirs(%i)
@@ -103,6 +104,7 @@ ClassMethod import(qspec = "-d", ByRef err = "", recurse = 1, ByRef loaded = "",
 		   
 	    }
 	}
+		
 	Q sc
 }
 
