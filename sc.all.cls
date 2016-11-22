@@ -13,7 +13,7 @@ ClassMethod export(generated = 0, system = 0, percent = 0)
 	#define export(%code, %file) $system.OBJ.ExportUDL(%code, %file,"/diffexport")
 	#define isGenerated(%code) ##class(%RoutineMgr).IsGenerated( %code )	
 	#define isPercented(%code) ("%" = $e(%code))
-	#define log w !, code, " -> ", filename
+	#define log w !, code, " -> ", filename, " "
 		
 	#; classes 
 	s rs = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
@@ -27,7 +27,7 @@ ClassMethod export(generated = 0, system = 0, percent = 0)
 			if ( 'percent && $$$isPercented( code ) ) continue
 			s filename = ..filename( code )
 			$$$log
-			d $$$export( code, filename )
+			w $$$export( code, filename )
 			
 		} s rs=""
 	} 
@@ -42,7 +42,7 @@ ClassMethod export(generated = 0, system = 0, percent = 0)
 	 		if ( 'generated && $$$isGenerated( code ) ) continue
 			s filename = ..filename( code )
 			$$$log
-			d $$$export( code, filename )
+			w $$$export( code, filename )
 			
 	    } s rs=""
 	}
@@ -55,7 +55,7 @@ ClassMethod export(generated = 0, system = 0, percent = 0)
     while rs.%Next() {
 		s code = rs.Name, filename = ..filename( code_".dfi" )
 		$$$log
-		d $$$export( code, filename )
+		w $$$export( code, filename )
 		
 	} s rs=""
 	
@@ -111,7 +111,11 @@ ClassMethod filename(code)
 {
 	s wd = ..workdir() 
 	d:'##class(%File).DirectoryExists( wd ) ##class(%File).CreateDirectoryChain( wd )
-	Q ##class(%File).NormalizeFilename( code, wd )
+	s filename = ##class(%File).NormalizeFilename( code, wd )
+	#; for *.dfi filename can contain folders
+	s path = ##class(%File).GetDirectory(filename) 
+	d:'##class(%File).DirectoryExists( path ) ##class(%File).CreateDirectoryChain( path )
+	Q filename
 }
 
 /// get or set working directory for export/import source

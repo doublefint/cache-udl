@@ -9,8 +9,14 @@ ClassMethod filename(code)
 	#; for each type - different directory
 	s wd = ..workdir() s:ext'="" wd = ##class(%File).NormalizeDirectory( ext, wd ) 
 	d:'##class(%File).DirectoryExists( wd ) ##class(%File).CreateDirectoryChain( wd )
-	s path = ##class(%File).NormalizeFilename( code, wd )
-	Q path
+	
+	s filename = ##class(%File).NormalizeFilename( code, wd )
+	#; for *.dfi filename can contain folders
+	if ext = "dfi" {
+		s path = ##class(%File).GetDirectory( filename ) 
+		d:'##class(%File).DirectoryExists( path ) ##class(%File).CreateDirectoryChain( path )
+	}
+	Q filename
 }
 
 }
