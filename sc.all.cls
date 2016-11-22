@@ -1,3 +1,4 @@
+/// 
 /// UDL export/import all for ISC Caché 2016.2
 /// Usage:
 /// w ##class(sc.all).workdir( "c:\your\work\dir\")
@@ -8,12 +9,13 @@ Class sc.all [ Abstract ]
 {
 
 /// export all available code
-ClassMethod export(generated = 0, system = 0, percent = 0)
+ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 1)
 {
 		
 	#define export(%code, %file) $system.OBJ.ExportUDL(%code, %file,"/diffexport")
 	#define isGenerated(%code) ##class(%RoutineMgr).IsGenerated( %code )	
 	#define isPercented(%code) ("%" = $e(%code))
+	#define isMapped(%code) ##class(%RoutineMgr).IsMapped( %code )
 	#define log w !, code, " -> ", filename, " "
 		
 	#; classes 
@@ -26,6 +28,7 @@ ClassMethod export(generated = 0, system = 0, percent = 0)
 			if ( 'system && isSystem ) continue
 			if ( 'generated && $$$isGenerated( code ) ) continue
 			if ( 'percent && $$$isPercented( code ) ) continue
+			if ( 'mapped && $$$isMapped( code ) ) continue
 			s filename = ..filename( code )
 			$$$log
 			w $$$export( code, filename )
@@ -41,6 +44,9 @@ ClassMethod export(generated = 0, system = 0, percent = 0)
 	    	
 	 		s code = rs.Name
 	 		if ( 'generated && $$$isGenerated( code ) ) continue
+	 		if ( 'percent && $$$isPercented( code ) ) continue
+			if ( 'mapped && $$$isMapped( code ) ) continue
+			
 			s filename = ..filename( code )
 			$$$log
 			w $$$export( code, filename )
