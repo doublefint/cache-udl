@@ -117,12 +117,20 @@ ClassMethod import(qspec = "cku-d", ByRef err = "", recurse = 1, ByRef loaded = 
 /// Translate ( codename ) into ( filename )
 ClassMethod filename(code)
 {
+	#define log(%dir,%sc) w !, "mkdir ", %dir, " ", %sc
 	s wd = ..workdir() 
-	d:'##class(%File).DirectoryExists( wd ) ##class(%File).CreateDirectoryChain( wd )
+	if '##class(%File).DirectoryExists( wd ) {
+		s sc = ##class(%File).CreateDirectoryChain( wd )
+		$$$log(wd,sc)
+	}
 	s filename = ##class(%File).NormalizeFilename( code, wd )
 	#; for *.dfi filename can contain folders
 	s path = ##class(%File).GetDirectory(filename) 
-	d:'##class(%File).DirectoryExists( path ) ##class(%File).CreateDirectoryChain( path )
+	if '##class(%File).DirectoryExists( path ) {
+		s sc=##class(%File).CreateDirectoryChain(path)
+		$$$log(path,sc)
+	}
+	
 	Q filename
 }
 

@@ -7,16 +7,32 @@ Class sc.all.sub Extends sc.all
 /// etc
 ClassMethod filename(code)
 {
+	#define log(%dir,%sc) w !, "mkdir ", %dir, " ", sc
+	
+	s wd = ..workdir() 
+	
+	if '##class(%File).DirectoryExists( wd ) {
+		s sc = ##class(%File).CreateDirectoryChain( wd )
+		$$$log(wd,sc)
+	}
+	
 	s ext = $p( code, ".", * ), ext = $zcvt( ext, "l" )
 	#; for each type - different directory
-	s wd = ..workdir() s:ext'="" wd = ##class(%File).NormalizeDirectory( ext, wd ) 
-	d:'##class(%File).DirectoryExists( wd ) ##class(%File).CreateDirectoryChain( wd )
+	
+	s:ext'="" wd = ##class(%File).NormalizeDirectory( ext, wd ) 
+	if '##class(%File).DirectoryExists( wd ) {
+		s sc = ##class(%File).CreateDirectoryChain( wd )
+		$$$log(wd,sc)
+	}
 	
 	s filename = ##class(%File).NormalizeFilename( code, wd )
 	#; for *.dfi filename can contain folders
 	if ext = "dfi" {
 		s path = ##class(%File).GetDirectory( filename ) 
-		d:'##class(%File).DirectoryExists( path ) ##class(%File).CreateDirectoryChain( path )
+		if '##class(%File).DirectoryExists( path ) {
+			s sc = ##class(%File).CreateDirectoryChain( path )	
+			$$$log(path,sc)
+		} 
 	}
 	Q filename
 }
