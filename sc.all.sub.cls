@@ -79,6 +79,8 @@ ClassMethod importUpdated(qspec = "cku-d", ByRef err = "", recurse = 1, ByRef lo
 		   
 		   } else {
 			   
+			   #; drop existing code before import ( purge DateModified )
+			   s:codets'="" sc = ##class(%RoutineMgr).Delete( codename )
 			   s sc = $system.OBJ.Load( filename, qspec, .err, .loaded)
 			   
 		   }
