@@ -70,7 +70,7 @@ ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 1)
 }
 
 /// import all from workdir
-ClassMethod import(qspec = "cku-d", ByRef err = "", recurse = 1, ByRef loaded = "", verbose = 1) As %Status
+ClassMethod import(filemask = "*.*", qspec = "cku-d", ByRef err = "", recurse = 1, ByRef loaded = "", verbose = 1) As %Status
 {
 	#define push(%dir) s dirs( $i( dirs ) ) = %dir
 	#define next(%i,%dir) s %i=$o( dirs( "" ), 1, %dir )  k:%i'="" dirs(%i)
@@ -82,7 +82,7 @@ ClassMethod import(qspec = "cku-d", ByRef err = "", recurse = 1, ByRef loaded = 
 	s rs = ##class(%ResultSet).%New( "%Library.File:FileSet" )
 	for { $$$next(i,dir) Q:i=""  Q:dir=""
 		
-		s sc = rs.Execute( dir, "*.*" ) Q:'sc
+		s sc = rs.Execute( dir, filemask ) Q:'sc
 		
 		while rs.Next() {
 			
