@@ -74,13 +74,11 @@ ClassMethod import(filemask = "*.*", qspec = "cku-d", ByRef err = "", recurse = 
 
 	s sc = 1, dirs = "", dir = ..workdir() $$$push(dir)
 
-	s rs = ##class(%ResultSet).%New( "%Library.File:FileSet" )
 	for { $$$next(i,dir) Q:i=""  Q:dir=""
 
-		s sc = rs.Execute( dir, filemask ) Q:'sc
+		s rs = ##class(%File).FileSetFunc( dir, filemask, , 1 )
 
-		while rs.Next() {
-
+		while rs.%Next() {
 			s filename = rs.Name
 
 			if $$$isDirectory(rs.Type) {
@@ -103,7 +101,6 @@ ClassMethod import(filemask = "*.*", qspec = "cku-d", ByRef err = "", recurse = 
 
 	Q sc
 }
-
 /// get or set working directory for export/import source
 ClassMethod workdir(workdir)
 {
@@ -171,14 +168,11 @@ ClassMethod importUpdated(filemask = "*.*", qspec = "cku-d", ByRef err = "", rec
 	#define log w !, filename, " -> ", codename, " ", +sc
 
 	s sc = 1, dirs = "", dir = ..workdir() $$$push(dir)
-
-	s rs = ##class(%ResultSet).%New( "%Library.File:FileSet" )
 	for { $$$next(i,dir) Q:i=""  Q:dir=""
 
-		s sc = rs.Execute( dir, filemask ) Q:'sc
+		s rs = ##class(%File).FileSetFunc( dir, filemask, , 1 )
 
-		while rs.Next() {
-
+		while rs.%Next() {
 		   s filename = rs.Name
 
 		   if $$$isDirectory( rs.Type ) {
