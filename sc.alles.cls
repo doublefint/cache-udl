@@ -6,13 +6,26 @@ Class sc.alles [ Abstract ]
 /// export all available code
 ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0)
 {
-
-	#define export(%code, %file) $system.OBJ.ExportUDL(%code, %file,"/diffexport")
+	 
+	#define export(%code, %file) ##continue
+			s sc = $system.OBJ.ExportUDL(%code, %file,"/diffexport")  ##continue
+			w +sc ##continue
+			if 'sc d $system.OBJ.DisplayError(sc)
+			
 	#define isGenerated(%code) ##class(%RoutineMgr).IsGenerated( %code )
 	#define isPercented(%code) ("%" = $e(%code))
 	#define isMapped(%code) ##class(%RoutineMgr).IsMapped( %code )
 	#define log w !, code, " -> ", filename, " "
+	
+	#define mkdir(%filename) ##continue
+			s path = ##class(%File).GetDirectory( %filename ) ##continue
+			if '##class(%File).DirectoryExists( path ) { ##continue
+				s sc = ##class(%File).CreateDirectoryChain( path ) ##continue
+				w !, "mkdir ", path, " ", sc ##continue
+			}
 
+
+	
 	#; classes
 	s rs = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
 	if rs.Execute() {
@@ -25,8 +38,9 @@ ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0)
 			if ( 'percent && $$$isPercented( code ) ) continue
 			if ( 'mapped && $$$isMapped( code ) ) continue
 			s filename = ..filename( code )
+			$$$mkdir( filename )
 			$$$log
-			w $$$export( code, filename )
+			$$$export( code, filename )
 
 		} s rs=""
 	}
@@ -43,25 +57,27 @@ ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0)
 			if ( 'mapped && $$$isMapped( code ) ) continue
 
 			s filename = ..filename( code )
+			$$$mkdir( filename )
 			$$$log
-			w $$$export( code, filename )
+			$$$export( code, filename )
 
 	    } s rs=""
 	}
 
 
 	#; dfi
-	#define export(%code, %file)  ##class(%DeepSee.UserLibrary.Utils).%Export( %code, %file, 0 )
+	#define export(%code,%file) w ##class(%DeepSee.UserLibrary.Utils).%Export( %code, %file, 0 )
 	s sql = "Select fullName as Name From %DeepSee_UserLibrary.FolderItem"
     s rs = ##class(%SQL.Statement).%ExecDirect( .stm, sql )
     while rs.%Next() {
 		s code = rs.Name, filename = ..filename( code_".dfi" )
+		$$$mkdir( filename )
 		$$$log
-		w $$$export( code, filename )
+		$$$export(code,filename)
 
 	} s rs=""
 
-    Q
+    Q 1
 }
 
 /// import all from workdir
@@ -101,6 +117,7 @@ ClassMethod import(filemask = "*.*", qspec = "cku-d", ByRef err = "", recurse = 
 
 	Q sc
 }
+
 /// get or set working directory for export/import source
 ClassMethod workdir(workdir)
 {
@@ -118,6 +135,7 @@ ClassMethod gln() [ CodeMode = expression, Private ]
 
 /// test.dfi -> /dfi/test.dfi
 /// test.cls -> /cls/test.cls
+/// testpkg.test.cls -> /cls/testpkg/test.cls
 /// etc
 ClassMethod filename(code)
 {
@@ -134,27 +152,19 @@ ClassMethod filename(code)
 	#; for each type - different directory
 
 	s:ext'="" wd = ##class(%File).NormalizeDirectory( ext, wd )
+	
+	#; directory must exist before any call (%File).NormalizeFilename( , wd)
 	if '##class(%File).DirectoryExists( wd ) {
-		s sc = ##class(%File).CreateDirectoryChain( wd )
+		s sc = ##class(%File).CreateDirectoryChain( wd ) 
 		$$$log(wd,sc)
 	}
 
 	s filename = ##class(%File).NormalizeFilename( code, wd )
 	#; for *.cls Package.Subpackage.ClassName.cls -> Folder/Subfolder/ClassName.cls
 	if ext ="cls" {
-		set foldercode=$piece(code,".",*-2)
-		set foldercode=$translate(foldercode,".","/")
-		set foldercode=foldercode_"/"_$piece(code,".",*-1,*)
-		set filename=##class(%File).NormalizeFilename( foldercode, wd )
-	}
-
-	#; for *.dfi filename can contain folders
-	if ext = ("dfi")!("cls") {
-		s path = ##class(%File).GetDirectory( filename )
-		if '##class(%File).DirectoryExists( path ) {
-			s sc = ##class(%File).CreateDirectoryChain( path )
-			$$$log(path,sc)
-		}
+		s dirs = $piece( code, ".", *-2 ), dirs = $translate( dirs, ".", "/" )
+		s relpath = dirs _ "/" _ $piece( code, ".", *-1, * ) ;
+		s filename = ##class(%File).NormalizeFilename( relpath, wd )
 	}
 	Q filename
 }
@@ -242,3 +252,4 @@ ClassMethod codets(codename, ext)
 }
 
 }
+
