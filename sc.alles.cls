@@ -6,17 +6,17 @@ Class sc.alles [ Abstract ]
 /// export all available code
 ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0)
 {
-	 
+
 	#define export(%code, %file) ##continue
 			s sc = $system.OBJ.ExportUDL(%code, %file,"/diffexport")  ##continue
 			w +sc ##continue
 			if 'sc d $system.OBJ.DisplayError(sc)
-			
+
 	#define isGenerated(%code) ##class(%RoutineMgr).IsGenerated( %code )
 	#define isPercented(%code) ("%" = $e(%code))
 	#define isMapped(%code) ##class(%RoutineMgr).IsMapped( %code )
 	#define log w !, code, " -> ", filename, " "
-	
+
 	#define mkdir(%filename) ##continue
 			s path = ##class(%File).GetDirectory( %filename ) ##continue
 			if '##class(%File).DirectoryExists( path ) { ##continue
@@ -25,7 +25,7 @@ ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0)
 			}
 
 
-	
+
 	#; classes
 	s rs = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
 	if rs.Execute() {
@@ -152,17 +152,18 @@ ClassMethod filename(code)
 	#; for each type - different directory
 
 	s:ext'="" wd = ##class(%File).NormalizeDirectory( ext, wd )
-	
+
 	#; directory must exist before any call (%File).NormalizeFilename( , wd)
 	if '##class(%File).DirectoryExists( wd ) {
-		s sc = ##class(%File).CreateDirectoryChain( wd ) 
+		s sc = ##class(%File).CreateDirectoryChain( wd )
 		$$$log(wd,sc)
 	}
 
 	s filename = ##class(%File).NormalizeFilename( code, wd )
+  //B:code="DPRep.Rest.JSON.cls" "L"
 	#; for *.cls Package.Subpackage.ClassName.cls -> Folder/Subfolder/ClassName.cls
 	if ext ="cls" {
-		s dirs = $piece( code, ".", *-2 ), dirs = $translate( dirs, ".", "/" )
+		s dirs = $piece( code, ".",1, *-2 ), dirs = $translate( dirs, ".", "/" )
 		s relpath = dirs _ "/" _ $piece( code, ".", *-1, * ) ;
 		s filename = ##class(%File).NormalizeFilename( relpath, wd )
 	}
@@ -176,7 +177,6 @@ ClassMethod importUpdated(filemask = "*.*", qspec = "cku-d", ByRef err = "", rec
 	#define next(%i,%dir) s %i=$o( dirs( "" ), 1, %dir )  k:%i'="" dirs(%i)
 	#define isDirectory(%type) ( %type = "D" )
 	#define log w !, filename, " -> ", codename, " ", +sc
-
 	s sc = 1, dirs = "", dir = ..workdir() $$$push(dir)
 	for { $$$next(i,dir) Q:i=""  Q:dir=""
 
@@ -193,8 +193,8 @@ ClassMethod importUpdated(filemask = "*.*", qspec = "cku-d", ByRef err = "", rec
 		   s filets = rs.DateModified
 		   s codename = ..codename( filename, .ext )
 		   s codets = ..codets( codename, ext )
-
 		   if ( filets '] codets ) continue
+			 //w codename,! B "L"
 
 		   /*
 		   w !, " ************* import ************** "
@@ -230,6 +230,7 @@ ClassMethod codename(filename, ByRef ext = "")
 		s fullname  = $tr( codename, "\", "/" ) ; return fullname for dfi in $$$IsWINDOWS
 		Q $p( fullname, ".", 1, *-1 ) ;remove extension
 	}
+	if (ext ="cls")!(ext="int")!(ext="inc")!(ext="mac") s codename=$tr(codename,"/",".")
 	Q codename
 }
 
@@ -252,4 +253,3 @@ ClassMethod codets(codename, ext)
 }
 
 }
-
