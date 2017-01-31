@@ -86,8 +86,8 @@ ClassMethod import(filemask = "*.*", qspec = "cku-d", ByRef err = "", recurse = 
 	#define push(%dir) s dirs( $i( dirs ) ) = %dir
 	#define next(%i,%dir) s %i=$o( dirs( "" ), 1, %dir )  k:%i'="" dirs(%i)
 	#define isDirectory(%type) ( %type = "D" )
-	#define log w !, filename, " ", +sc
-
+	#define log w !, filename, " ", +sc, $S(sc=1:"",1: " "_$system.Status.GetOneErrorText(sc))
+	
 	s sc = 1, dirs = "", dir = ..workdir() $$$push(dir)
 
 	for { $$$next(i,dir) Q:i=""  Q:dir=""
@@ -253,3 +253,4 @@ ClassMethod codets(codename, ext)
 }
 
 }
+
