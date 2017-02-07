@@ -1,6 +1,6 @@
 /// special edition of sc.all.sub for ES without dependencies
 /// Export different types of modules in different subfolders
-Class sc.alles [ Abstract ]
+Class sc.code [ Abstract ]
 {
 
 /// export all available code
@@ -160,7 +160,7 @@ ClassMethod filename(code)
 	}
 
 	s filename = ##class(%File).NormalizeFilename( code, wd )
-  //B:code="DPRep.Rest.JSON.cls" "L"
+	//B:code="DPRep.Rest.JSON.cls" "L"
 	#; for *.cls Package.Subpackage.ClassName.cls -> Folder/Subfolder/ClassName.cls
 	if ext ="cls" {
 		s dirs = $piece( code, ".",1, *-2 ), dirs = $translate( dirs, ".", "/" )
