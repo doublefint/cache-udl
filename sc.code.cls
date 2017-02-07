@@ -1,5 +1,6 @@
-/// special edition of sc.all.sub for ES without dependencies
-/// Export different types of modules in different subfolders
+/// Export different types of modules in different subfolders in UDL (plain) format
+/// test.dfi -> /dfi/test.dfi
+/// testpkg.test.cls -> /cls/testpkg/test.cls
 Class sc.code [ Abstract ]
 {
 
