@@ -3,13 +3,13 @@ Export/Import sources in UDL format for [ISC Caché 2016.2](http://www.intersyst
 
 ## Setup working directory ( optional )
 ```
-NS> w ##class(sc.all).workdir("/path/to/your/working/directory/")
+NS> w ##class(sc.code).workdir("/path/to/your/working/directory/")
 ```
 ## Export to working directory:
 ```
-NS> d ##class(sc.all).export()
+NS> d ##class(sc.code).export()
 ```
 ## Import:
 ```
-NS> d ##class(sc.all).import()
+NS> d ##class(sc.code).import()
 ```
