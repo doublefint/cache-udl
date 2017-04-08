@@ -10,23 +10,20 @@ ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0)
 
 	#define export(%code, %file) ##continue
 			s sc = $system.OBJ.ExportUDL(%code, %file,"/diffexport")  ##continue
-			w +sc ##continue
-			if 'sc d $system.OBJ.DisplayError(sc)
+			if +sc w "Ok" else  d $system.OBJ.DisplayError(sc)
 
 	#define isGenerated(%code) ##class(%RoutineMgr).IsGenerated( %code )
 	#define isPercented(%code) ("%" = $e(%code))
 	#define isMapped(%code) ##class(%RoutineMgr).IsMapped( %code )
-	#define log w !, code, " -> ", filename, " "
-
+	#define log w !, code, " -> ", ##class(%File).GetFilename(filename), " "
+	
 	#define mkdir(%filename) ##continue
 			s path = ##class(%File).GetDirectory( %filename ) ##continue
 			if '##class(%File).DirectoryExists( path ) { ##continue
 				s sc = ##class(%File).CreateDirectoryChain( path ) ##continue
 				w !, "mkdir ", path, " ", sc ##continue
 			}
-
-
-
+	w "#; Exporting to ", ..workdir(),!
 	#; classes
 	s rs = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
 	if rs.Execute() {
@@ -67,7 +64,8 @@ ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0)
 
 
 	#; dfi
-	#define export(%code,%file) w ##class(%DeepSee.UserLibrary.Utils).%Export( %code, %file, 0 )
+	#define export(%code,%file) s sc = ##class(%DeepSee.UserLibrary.Utils).%Export( %code, %file, 0 ) 
+
 	s sql = "Select fullName as Name From %DeepSee_UserLibrary.FolderItem"
     s rs = ##class(%SQL.Statement).%ExecDirect( .stm, sql )
     while rs.%Next() {
@@ -77,7 +75,9 @@ ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0)
 		$$$export(code,filename)
 
 	} s rs=""
-
+	
+	w !,!, "#; Exported to: ", ..workdir()
+	
     Q 1
 }
 
@@ -87,10 +87,10 @@ ClassMethod import(filemask = "*.*", qspec = "cku-d", ByRef err = "", recurse = 
 	#define push(%dir) s dirs( $i( dirs ) ) = %dir
 	#define next(%i,%dir) s %i=$o( dirs( "" ), 1, %dir )  k:%i'="" dirs(%i)
 	#define isDirectory(%type) ( %type = "D" )
-	#define log w !, $piece(filename,..workdir(),2), " ", +sc, $S(sc=1:"",1: " "_$system.Status.GetOneErrorText(sc))
+	#define log w !, ##class(%File).GetFilename(filename), " " if +sc w "Ok" else  d $system.Status.GetOneErrorText(sc)
 	
 	s sc = 1, dirs = "", dir = ..workdir() $$$push(dir)
-	if verbose w "Starting import of updated files in "_dir,!
+	if verbose w "#; Importing from "_dir,!
 	for { $$$next(i,dir) Q:i=""  Q:dir=""
 
 		s rs = ##class(%File).FileSetFunc( dir, filemask, , 1 )
@@ -115,7 +115,7 @@ ClassMethod import(filemask = "*.*", qspec = "cku-d", ByRef err = "", recurse = 
 
 	    }
 	}
-
+	w:verbose !,!,"#; Imported from ", ..workdir()
 	Q sc
 }
 
@@ -177,10 +177,10 @@ ClassMethod importUpdated(filemask = "*.*", qspec = "cku-d", ByRef err = "", rec
 	#define push(%dir) s dirs( $i( dirs ) ) = %dir
 	#define next(%i,%dir) s %i=$o( dirs( "" ), 1, %dir )  k:%i'="" dirs(%i)
 	#define isDirectory(%type) ( %type = "D" )
-	#define log w !, $piece(filename,..workdir(),2), " ", +sc, $S(sc=1:"",1: " "_$system.Status.GetOneErrorText(sc))
+	#define log w !, ##class(%File).GetFilename(filename)," " if +sc w "Ok" else  d $system.Status.GetOneErrorText( sc )
 
 	s sc = 1, dirs = "", dir = ..workdir() $$$push(dir)
-	if verbose w "Starting import of updated files in "_dir,!
+	if verbose w "#; Importing updated from ", dir,!
 	for { $$$next(i,dir) Q:i=""  Q:dir=""
 
 		s rs = ##class(%File).FileSetFunc( dir, filemask, , 1 )
@@ -220,6 +220,7 @@ ClassMethod importUpdated(filemask = "*.*", qspec = "cku-d", ByRef err = "", rec
 		   if verbose $$$log
 	    }
 	}
+	w:verbose !,"#; Imported updated from ", ..workdir()
 	Q sc
 }
 
