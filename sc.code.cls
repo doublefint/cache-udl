@@ -5,7 +5,7 @@ Class sc.code [ Abstract ]
 {
 
 /// export all available code
-ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0)
+ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0, mask = "")
 {
 
 	#define export(%code, %file) s sc = $system.OBJ.ExportUDL(%code, %file,"/diffexport") ##continue
@@ -22,6 +22,7 @@ ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0)
 				s sc = ##class(%File).CreateDirectoryChain( path ) ##continue
 				w !, "mkdir ", path, " ", sc ##continue
 			}
+						
 	w "#; Exporting to ", ..workdir(),!
 	#; classes
 	s rs = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:Summary")
@@ -34,6 +35,8 @@ ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0)
 			if ( 'generated && $$$isGenerated( code ) ) continue
 			if ( 'percent && $$$isPercented( code ) ) continue
 			if ( 'mapped && $$$isMapped( code ) ) continue
+			if ( '$find( code, mask ) ) continue
+			
 			s filename = ..filename( code )
 			$$$mkdir( filename )
 			$$$log
@@ -52,7 +55,8 @@ ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0)
 	 		if ( 'generated && $$$isGenerated( code ) ) continue
 	 		if ( 'percent && $$$isPercented( code ) ) continue
 			if ( 'mapped && $$$isMapped( code ) ) continue
-
+			if ( '$find( code, mask ) ) continue
+			
 			s filename = ..filename( code )
 			$$$mkdir( filename )
 			$$$log
@@ -69,13 +73,14 @@ ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0)
     s rs = ##class(%SQL.Statement).%ExecDirect( .stm, sql )
     while rs.%Next() {
 		s code = rs.Name, filename = ..filename( code_".dfi" )
+		if ( '$find( code, mask ) ) continue
 		$$$mkdir( filename )
 		$$$log
 		$$$export(code,filename)
 
 	} s rs=""
 	
-	w !,!, "#; Exported to: ", ..workdir()
+	w !,!, "#; Exported to ", ..workdir()
 	
     Q 1
 }
@@ -89,7 +94,7 @@ ClassMethod import(filemask = "*.*", qspec = "cku-d", ByRef err = "", recurse = 
 	#define log w !, ##class(%File).GetFilename(filename), " " w:sc "Ok" d:'sc $system.OBJ.DisplayError(sc)
 	
 	s sc = 1, dirs = "", dir = ..workdir() $$$push(dir)
-	if verbose w "#; Importing from "_dir,!
+	if verbose w "#; Importing from ", dir,!
 	for { $$$next(i,dir) Q:i=""  Q:dir=""
 
 		s rs = ##class(%File).FileSetFunc( dir, filemask, , 1 )
