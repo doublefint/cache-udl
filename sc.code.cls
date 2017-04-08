@@ -8,9 +8,8 @@ Class sc.code [ Abstract ]
 ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0)
 {
 
-	#define export(%code, %file) ##continue
-			s sc = $system.OBJ.ExportUDL(%code, %file,"/diffexport")  ##continue
-			if +sc w "Ok" else  d $system.OBJ.DisplayError(sc)
+	#define export(%code, %file) s sc = $system.OBJ.ExportUDL(%code, %file,"/diffexport") ##continue
+								 w:sc "Ok" d:'sc $system.OBJ.DisplayError(sc)
 
 	#define isGenerated(%code) ##class(%RoutineMgr).IsGenerated( %code )
 	#define isPercented(%code) ("%" = $e(%code))
@@ -87,7 +86,7 @@ ClassMethod import(filemask = "*.*", qspec = "cku-d", ByRef err = "", recurse = 
 	#define push(%dir) s dirs( $i( dirs ) ) = %dir
 	#define next(%i,%dir) s %i=$o( dirs( "" ), 1, %dir )  k:%i'="" dirs(%i)
 	#define isDirectory(%type) ( %type = "D" )
-	#define log w !, ##class(%File).GetFilename(filename), " " if +sc w "Ok" else  d $system.Status.GetOneErrorText(sc)
+	#define log w !, ##class(%File).GetFilename(filename), " " w:sc "Ok" d:'sc $system.OBJ.DisplayError(sc)
 	
 	s sc = 1, dirs = "", dir = ..workdir() $$$push(dir)
 	if verbose w "#; Importing from "_dir,!
@@ -112,7 +111,7 @@ ClassMethod import(filemask = "*.*", qspec = "cku-d", ByRef err = "", recurse = 
 			}
 
 			if verbose $$$log
-
+			
 	    }
 	}
 	w:verbose !,!,"#; Imported from ", ..workdir()
@@ -177,7 +176,7 @@ ClassMethod importUpdated(filemask = "*.*", qspec = "cku-d", ByRef err = "", rec
 	#define push(%dir) s dirs( $i( dirs ) ) = %dir
 	#define next(%i,%dir) s %i=$o( dirs( "" ), 1, %dir )  k:%i'="" dirs(%i)
 	#define isDirectory(%type) ( %type = "D" )
-	#define log w !, ##class(%File).GetFilename(filename)," " if +sc w "Ok" else  d $system.Status.GetOneErrorText( sc )
+	#define log w !, ##class(%File).GetFilename(filename)," " w:sc "Ok" d:'sc $system.OBJ.DisplayError( sc )
 
 	s sc = 1, dirs = "", dir = ..workdir() $$$push(dir)
 	if verbose w "#; Importing updated from ", dir,!
@@ -196,15 +195,12 @@ ClassMethod importUpdated(filemask = "*.*", qspec = "cku-d", ByRef err = "", rec
 		   s filets = rs.DateModified
 		   s codename = ..codename( filename, .ext )
 		   s codets = ..codets( codename, ext )
+		   
+		   #; w !, filename, $c(9), "(", filets, ")"
+		   #; w !, codename, $c(9), "(", codets, ")"
+		   
 		   if ( filets '] codets ) continue
-			 //w codename,! B "L"
-
-		   /*
-		   w !, " ************* import ************** "
-		   w !, "file: ", filets
-		   w !, "code: ", codets
-		   */
-
+			 
 		   if ext = "dfi" {
 
 			   s sc = ##class(%DeepSee.UserLibrary.Utils).%Import( filename, 1, 0, 0, "", .loaded )
@@ -212,8 +208,8 @@ ClassMethod importUpdated(filemask = "*.*", qspec = "cku-d", ByRef err = "", rec
 		   } else {
 
 			   #; drop existing code before import ( purge DateModified )
-			   s:codets'="" sc = ##class(%RoutineMgr).Delete( codename )
-			   s sc = $system.OBJ.Load( filename, qspec, .err, .loaded)
+			   #; s:codets'="" sc = ##class(%RoutineMgr).Delete( codename )
+			   k err s sc = $system.OBJ.Load( filename, qspec, .err, .loaded)
 
 		   }
 
@@ -234,7 +230,7 @@ ClassMethod codename(filename, ByRef ext = "")
 		s fullname  = $tr( codename, "\", "/" ) ; return fullname for dfi in $$$IsWINDOWS
 		Q $p( fullname, ".", 1, *-1 ) ;remove extension
 	}
-	if (ext ="cls")!(ext="int")!(ext="inc")!(ext="mac") s codename=$tr(codename,"/",".")
+	if (ext ="cls")!(ext="int")!(ext="inc")!(ext="mac") s codename=$tr(codename,"\/","..")
 	Q codename
 }
 
