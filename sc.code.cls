@@ -87,10 +87,10 @@ ClassMethod import(filemask = "*.*", qspec = "cku-d", ByRef err = "", recurse = 
 	#define push(%dir) s dirs( $i( dirs ) ) = %dir
 	#define next(%i,%dir) s %i=$o( dirs( "" ), 1, %dir )  k:%i'="" dirs(%i)
 	#define isDirectory(%type) ( %type = "D" )
-	#define log w !, filename, " ", +sc, $S(sc=1:"",1: " "_$system.Status.GetOneErrorText(sc))
+	#define log w !, $piece(filename,..workdir(),2), " ", +sc, $S(sc=1:"",1: " "_$system.Status.GetOneErrorText(sc))
 	
 	s sc = 1, dirs = "", dir = ..workdir() $$$push(dir)
-
+	if verbose w "Starting import of updated files in "_dir,!
 	for { $$$next(i,dir) Q:i=""  Q:dir=""
 
 		s rs = ##class(%File).FileSetFunc( dir, filemask, , 1 )
@@ -177,8 +177,10 @@ ClassMethod importUpdated(filemask = "*.*", qspec = "cku-d", ByRef err = "", rec
 	#define push(%dir) s dirs( $i( dirs ) ) = %dir
 	#define next(%i,%dir) s %i=$o( dirs( "" ), 1, %dir )  k:%i'="" dirs(%i)
 	#define isDirectory(%type) ( %type = "D" )
-	#define log w !, filename, " -> ", codename, " ", +sc
+	#define log w !, $piece(filename,..workdir(),2), " ", +sc, $S(sc=1:"",1: " "_$system.Status.GetOneErrorText(sc))
+
 	s sc = 1, dirs = "", dir = ..workdir() $$$push(dir)
+	if verbose w "Starting import of updated files in "_dir,!
 	for { $$$next(i,dir) Q:i=""  Q:dir=""
 
 		s rs = ##class(%File).FileSetFunc( dir, filemask, , 1 )
