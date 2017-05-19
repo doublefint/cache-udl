@@ -74,6 +74,7 @@ ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0, mask = ""
     while rs.%Next() {
 		s code = rs.Name, filename = ..filename( code_".dfi" )
 		if ( '$find( code, mask ) ) continue
+		if ($L(code,"$TRASH")>1) continue
 		$$$mkdir( filename )
 		$$$log
 		$$$export(code,filename)
