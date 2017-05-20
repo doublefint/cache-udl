@@ -114,16 +114,23 @@ ClassMethod import(filemask = "*.*", qspec = "cku-d", ByRef err = "", recurse = 
 			s ext = $p( filename, ".", * )
 
 			if $zcvt( ext, "l" ) = "dfi" {
-				s sc = ##class(%DeepSee.UserLibrary.Utils).%Import( filename, 1, 0, 0, "", .loaded )
+				s sc = ##class(%DeepSee.UserLibrary.Utils).%Import( filename, 1, 0, 0, "", .dsloaded )
 			} else {
-				s sc = $system.OBJ.Load( filename, qspec, .err, .loaded)
+				// load classes only
+				s sc = $system.OBJ.Load( filename, "k-d", .err, .loaded)
 			}
 
 			if verbose $$$log
 			
 	    }
+		// compile all the loaded classes to obey dependencies
+		s sc=$system.OBJ.CompileList( .loaded, "ckbr-d/multicompile",.err )
+		
 	}
-	w:verbose !,!,"#; Imported from ", ..workdir()
+	if verbose {
+		if $D(err) zw err
+		w !,!,"#; Imported from ", ..workdir()
+		}
 	Q sc
 }
 
