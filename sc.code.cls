@@ -14,7 +14,7 @@ ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0, mask = ""
 	#define isGenerated(%code) ##class(%RoutineMgr).IsGenerated( %code )
 	#define isPercented(%code) ("%" = $e(%code))
 	#define isMapped(%code) ##class(%RoutineMgr).IsMapped( %code )
-	#define log w !, code, " -> ", ##class(%File).GetFilename(filename), " "
+	#define log w !, code, " -> ", $piece(filename,..workdir(),2), " "
 	
 	#define mkdir(%filename) ##continue
 			s path = ##class(%File).GetDirectory( %filename ) ##continue
@@ -74,6 +74,7 @@ ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0, mask = ""
     while rs.%Next() {
 		s code = rs.Name, filename = ..filename( code_".dfi" )
 		if ( '$find( code, mask ) ) continue
+		if ($L(code,"$TRASH")>1) continue
 		$$$mkdir( filename )
 		$$$log
 		$$$export(code,filename)
@@ -91,10 +92,11 @@ ClassMethod import(filemask = "*.*", qspec = "cku-d", ByRef err = "", recurse = 
 	#define push(%dir) s dirs( $i( dirs ) ) = %dir
 	#define next(%i,%dir) s %i=$o( dirs( "" ), 1, %dir )  k:%i'="" dirs(%i)
 	#define isDirectory(%type) ( %type = "D" )
-	#define log w !, ##class(%File).GetFilename(filename), " " w:sc "Ok" d:'sc $system.OBJ.DisplayError(sc)
+	#define log w !, $piece(filename,..workdir(),2), " " w:sc "Ok" d:'sc $system.OBJ.DisplayError(sc)
 	
 	s sc = 1, dirs = "", dir = ..workdir() $$$push(dir)
 	if verbose w "#; Importing from ", dir,!
+	d ..setIgnore(.fm)
 	for { $$$next(i,dir) Q:i=""  Q:dir=""
 
 		s rs = ##class(%File).FileSetFunc( dir, filemask, , 1 )
@@ -106,22 +108,68 @@ ClassMethod import(filemask = "*.*", qspec = "cku-d", ByRef err = "", recurse = 
 				if recurse $$$push(filename)
 				continue
 			}
+			// check file filter
+			if ..inFilter(.fm,filename) continue
 
 			s ext = $p( filename, ".", * )
 
 			if $zcvt( ext, "l" ) = "dfi" {
-				s sc = ##class(%DeepSee.UserLibrary.Utils).%Import( filename, 1, 0, 0, "", .loaded )
+				s sc = ##class(%DeepSee.UserLibrary.Utils).%Import( filename, 1, 0, 0, "", .dsloaded )
 			} else {
-				s sc = $system.OBJ.Load( filename, qspec, .err, .loaded)
+				// load classes only
+				s sc = $system.OBJ.Load( filename, "k-d", .err, .loaded)
 			}
 
 			if verbose $$$log
 			
 	    }
+		// compile all the loaded classes to obey dependencies
+		s sc=$system.OBJ.CompileList( .loaded, "ckbr-d/multicompile",.err )
+		
 	}
-	w:verbose !,!,"#; Imported from ", ..workdir()
+	if verbose {
+		if $D(err) zw err
+		w !,!,"#; Imported from ", ..workdir()
+		}
 	Q sc
 }
+
+ClassMethod inFilter(ByRef filtermask,filename) as %Boolean
+{
+	s result=0
+	for 
+	{
+		if '$d(filtermask($I(i))) quit
+		set filter=$piece(filtermask(i),"*")
+		if $length(filename,filter)>1 set result=1
+	}
+
+	quit result
+}
+
+/// get the filtermask for the repository.
+/// looks for .gitignore file and applies all the lines to filters
+ClassMethod setIgnore(ByRef filtermask) 
+{
+	
+	// working with .gitignore file
+	// gitignore consists of masks of filtering files
+	s filename=..workdir()_"/.gitignore"
+	if '##class(%File).Exists(filename) quit
+	s file=##class(%File).%New(filename)
+	s sc=file.Open("R")
+	if 'sc 
+	{
+		if verbose d $System.OBJ.DisplayError(sc) return
+	}
+
+	While 'file.AtEnd
+	{
+		s filtermask($I(filtermask))=file.ReadLine()
+	}
+quit
+}
+
 
 /// get or set working directory for export/import source
 ClassMethod workdir(workdir)
@@ -181,10 +229,11 @@ ClassMethod importUpdated(filemask = "*.*", qspec = "cku-d", ByRef err = "", rec
 	#define push(%dir) s dirs( $i( dirs ) ) = %dir
 	#define next(%i,%dir) s %i=$o( dirs( "" ), 1, %dir )  k:%i'="" dirs(%i)
 	#define isDirectory(%type) ( %type = "D" )
-	#define log w !, ##class(%File).GetFilename(filename)," " w:sc "Ok" d:'sc $system.OBJ.DisplayError( sc )
+	#define log w !, $piece(filename,..workdir(),2)," " w:sc "Ok" d:'sc $system.OBJ.DisplayError( sc )
 
 	s sc = 1, dirs = "", dir = ..workdir() $$$push(dir)
 	if verbose w "#; Importing updated from ", dir,!
+	d ..setIgnore(.fm)
 	for { $$$next(i,dir) Q:i=""  Q:dir=""
 
 		s rs = ##class(%File).FileSetFunc( dir, filemask, , 1 )
@@ -196,6 +245,9 @@ ClassMethod importUpdated(filemask = "*.*", qspec = "cku-d", ByRef err = "", rec
 			 if ( recurse ) $$$push(filename) ;push directory
 			 continue
 		   }
+
+			// check file filter
+			if ..inFilter(.fm,filename) continue
 
 		   s filets = rs.DateModified
 		   s codename = ..codename( filename, .ext )
