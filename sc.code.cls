@@ -87,7 +87,7 @@ ClassMethod export(generated = 0, system = 0, percent = 0, mapped = 0, mask = ""
 }
 
 /// import all from workdir
-ClassMethod import(filemask = "*.*", qspec = "cku-d", ByRef err = "", recurse = 1, ByRef loaded = "", verbose = 1) As %Status
+ClassMethod import(filemask = "*.xml;*.cls;*.mac;*.int;*.inc;*.dfi", qspec = "cku-d", ByRef err = "", recurse = 1, ByRef loaded = "", verbose = 1) As %Status
 {
 	#define push(%dir) s dirs( $i( dirs ) ) = %dir
 	#define next(%i,%dir) s %i=$o( dirs( "" ), 1, %dir )  k:%i'="" dirs(%i)
@@ -124,11 +124,20 @@ ClassMethod import(filemask = "*.*", qspec = "cku-d", ByRef err = "", recurse = 
 			
 	    }
 		// compile all the loaded classes to obey dependencies
-		s sc=$system.OBJ.CompileList( .loaded, "ckbr-d/multicompile",.err )
+		s sc=$system.OBJ.CompileList( .loaded, "cukbr-d/multicompile",.err )
 		
 	}
+	
 	if verbose {
-		if $D(err) zw err
+	
+		if $D(err) {
+			s i=$Order(err("")) 
+			while i'="" {
+			w !,err(i)
+			s i=$O(err(i))
+			}
+		}
+		
 		w !,!,"#; Imported from ", ..workdir()
 		}
 	Q sc
@@ -213,6 +222,8 @@ ClassMethod filename(code)
 	}
 
 	s filename = ##class(%File).NormalizeFilename( code, wd )
+	#; lowercase file extension
+	s $p(filename,".",*)=ext
 	//B:code="DPRep.Rest.JSON.cls" "L"
 	#; for *.cls Package.Subpackage.ClassName.cls -> Folder/Subfolder/ClassName.cls
 	if ext ="cls" {
