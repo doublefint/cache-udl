@@ -195,6 +195,40 @@ ClassMethod gln() [ CodeMode = expression, Private ]
 "^"_$classname()
 }
 
+
+
+ClassMethod init()
+{
+	#define confile "/cos.json"
+	set stream=##class(%Stream.FileCharacter).%New()
+	set sc=stream.LinkToFile(..workdir()_$$$confile)
+	s conf={}.%FromJSON(stream.Read($$$MaxCacheInt))
+	s gln=..gln()
+	s @gln@("compileList")=conf.compileList
+	s @gln@("projectName")=conf.projectName
+	w "compileList="_conf.compileList,!
+	w "projectName="_conf.projectName
+}
+
+/// export release file for list and project settings
+ClassMethod release() {
+	s gln=..gln()
+	s list=$G(@gln@("compileList"))
+	if list="" w "Nothing to release. Run init method first" quit
+
+	s release=$G(@gln@("projectName"),"release")
+	s release=release_$p($zdt($h,8)," ")_$tr($p($p($zdt($h)," ",2),":",1,2),":")_".xml"
+	D $System.OBJ.Export(list,release)
+	w "All objects with mask "_list_" has been exported to "_release
+}
+
+ClassMethod compile() {
+	s gln=..gln()
+	s list=$G(@gln@("compileList"))
+	if list="" w "Nothing to compile. Run init method first" quit
+	d $System.OBJ.compile(list)
+}
+
 /// test.dfi -> /dfi/test.dfi
 /// test.cls -> /cls/test.cls
 /// testpkg.test.cls -> /cls/testpkg/test.cls
@@ -319,6 +353,7 @@ ClassMethod codets(codename, ext)
 	}
 	Q $p( ts, "." ) ;remove ms
 }
+
 
 }
 
